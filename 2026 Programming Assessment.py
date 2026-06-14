@@ -12,7 +12,7 @@ def create_widget():
     # Load image
     img = tk.PhotoImage(file=Main_Image) #load image in window
 
-    label = tk.Label(root, image=img, borderwidth=0, highlightthickness=0)
+    label = tk.Label(root, image=img)
     label.image = img
     label.pack()
 
@@ -34,5 +34,9 @@ def create_widget():
 
     root.mainloop() 
 
+print("Kachow")
 create_widget()
 
+# create image on screen
+# change image using clock function
+# afford state to image so that when in 'bad' state opens 
