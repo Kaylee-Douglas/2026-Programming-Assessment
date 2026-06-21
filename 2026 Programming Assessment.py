@@ -1,7 +1,7 @@
 import tkinter as tk  # import gui so graphical interface can be used
 import mysql.connector as mysql  # connect database to vscode
 import datetime  # allow for time to be tracked
-import random  # ADDED for random task generation
+import random  # for random task generation
 
 # Creates the widget as a class (allows for more features)
 class WellbeingWidget:
@@ -44,6 +44,7 @@ class WellbeingWidget:
 
     # lets the widget close when clicked rather than forcing the user to end the code manually
     def bind_events(self):
+        # closes both windows when clicked
         self.label.bind("<Button-1>", lambda e: self.close())
 
     def close(self):
@@ -58,7 +59,7 @@ class WellbeingWidget:
     # creates the section that holds the tasks
     def create_speech_bubble(self):
         # Creates a new window for the bubble
-        self.bubble = tk.Toplevel(self.root) #ccreates a new window that groups/is attached to the main widget
+        self.bubble = tk.Toplevel(self.root) # creates a new window that groups/is attached to the main widget
         self.bubble.overrideredirect(True) # removes framing
         self.bubble.attributes("-topmost", False) # place below other windows, just like main window
         self.bubble.configure(bg="white") # make it white
@@ -69,6 +70,24 @@ class WellbeingWidget:
 
         self.bubble.geometry(f"200x80+{bubble_x}+{bubble_y}") # place the speech bubble!
 
+        # store information about the bubble
+        self.bubble_label = tk.Label(
+            self.bubble,
+            bg="white",
+            fg="black",
+            font=("Arial", 9),
+            justify="left"
+        )
+        self.bubble_label.pack(padx=10, pady=10)
+
+        # initial task generates
+        self.refresh_tasks()
+
+        # refresh tasks when bubble clicked
+        self.bubble_label.bind("<Button-1>", lambda e: self.refresh_tasks())
+
+    # refreshes tasks inside bubble
+    def refresh_tasks(self):
         # Create a list of tasks
         tasks = [
             "Drink some water",
@@ -83,28 +102,19 @@ class WellbeingWidget:
             "Think of three things you're grateful for",
         ]
 
-        chosen = random.sample(tasks, 3) # randomly select 3 tasks from the list to display)
+        chosen = random.sample(tasks, 3) # randomly select 3 tasks from the list to display
 
         # Display tasks inside bubble
         text = "\n".join(f"• {t}" for t in chosen) # bullet point the tasks on their own lines
-        # create a label to hold the text
-        label = tk.Label( 
-            self.bubble,
-            text=text,
-            bg="white",
-            fg="black",
-            font=("Arial", 9),
-            justify="left"
-        )
-        label.pack(padx=10, pady=10) # create with some room on the sides
 
-        # Make bubble close when clicked
-        label.bind("<Button-1>", lambda e: self.bubble.destroy())
+        # update the bubble
+        self.bubble_label.config(text=text)
 
 
 # Run the widget
 if __name__ == "__main__":  # if the program is run
     widget = WellbeingWidget("testimg.png")  # create a widget using the test image (changeable for skins/states later!)
     widget.run()  # go go go !!
+
 
 
