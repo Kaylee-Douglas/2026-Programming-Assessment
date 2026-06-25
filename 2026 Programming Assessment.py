@@ -91,15 +91,14 @@ class WellbeingWidget:
         # Create a list of tasks
         tasks = [
             "Drink some water",
-            "Take a second to stretch",
+            "Pause to stretch",
             "Take a deep breath",
-            "Posture check!!",
-            "Take a 5 minute break",
+            "Posture check",
+            "Take a short break",
             "Go for a walk",
             "Tidy your workspace",
-            "Message one of your friends",
-            "Remind yourself of your goals",
-            "Think of three things you're grateful for",
+            "Message a friends",
+            "Remember your goals",
         ]
 
         chosen = random.sample(tasks, 3) # randomly select 3 tasks from the list to display
