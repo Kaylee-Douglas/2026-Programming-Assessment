@@ -4,9 +4,59 @@ import datetime  # allow for time to be tracked
 import random  # for random task generation
 
 # Creates the widget as a class (allows for more features)
-class WellbeingWidget:
-    def __init__(self, image_path="testimg.png"):
-        self.image_path = image_path
+class WellbeingWidget: #create class
+    def __init__(self, image_path="testimg.png"): # create image path (for main widget image)
+        self.image_path = image_path # store the image path for later use
+
+    # set up for user input
+        self.user_name = None # create name variable
+        self.selected_categories = [] # create list to store categories
+        self.open_question_window() # create window event to ask for input
+
+    # create name input/task preference window
+    def open_question_window(self):
+        self.setup_win = tk.Tk()
+        self.setup_win.title("Personalize Your Widget!")
+
+        tk.Label(self.setup_win, text="Enter your Name:").pack(pady=5)
+        self.name_entry = tk.Entry(self.setup_win)
+        self.name_entry.pack(pady=5)
+
+        tk.Label(self.setup_win, text="Select task categories:").pack(pady=10)
+
+        # Checkboxes for categories
+        self.food_var = tk.IntVar()
+        self.exercise_var = tk.IntVar()
+        self.school_var = tk.IntVar()
+        self.personal_var = tk.IntVar()
+
+        tk.Checkbutton(self.setup_win, text="Food-related tasks", variable=self.food_var).pack(anchor="w")
+        tk.Checkbutton(self.setup_win, text="Exercise-related tasks", variable=self.exercise_var).pack(anchor="w")
+        tk.Checkbutton(self.setup_win, text="School-related tasks", variable=self.school_var).pack(anchor="w")
+        tk.Checkbutton(self.setup_win, text="Personal/Other tasks", variable=self.personal_var).pack(anchor="w")
+
+        tk.Button(self.setup_win, text="Start Widget", command=self.finish_setup).pack(pady=15)
+
+        self.setup_win.mainloop()
+
+    # load widget with user's chosen input
+    def finish_setup(self):
+        self.user_name = self.name_entry.get().strip()
+
+        # Store selected categories
+        if self.food_var.get() == 1:
+            self.selected_categories.append("food")
+        if self.exercise_var.get() == 1:
+            self.selected_categories.append("exercise")
+        if self.school_var.get() == 1:
+            self.selected_categories.append("school")
+        if self.personal_var.get() == 1:
+            self.selected_categories.append("personal")
+
+        # Close setup window
+        self.setup_win.destroy()
+
+        # Continue loading widget
         self.root = tk.Tk()
         
         # adds class function that..
@@ -88,25 +138,56 @@ class WellbeingWidget:
 
     # refreshes tasks inside bubble
     def refresh_tasks(self):
-        # Create a list of tasks
-        tasks = [
+        # Create categorised task lists
+        food_tasks = [
+            "Eat a meal",
+            "Have a healthy snack",
             "Drink some water",
-            "Pause to stretch",
-            "Take a deep breath",
-            "Posture check",
-            "Take a short break",
-            "Go for a walk",
-            "Tidy your workspace",
-            "Message a friends",
-            "Remember your goals",
+            "Meal Prep",
         ]
 
-        chosen = random.sample(tasks, 3) # randomly select 3 tasks from the list to display
+        exercise_tasks = [
+            "Pause to stretch",
+            "Go for a walk",
+            "Go for a run",
+            "Go to the gym",
+            "Do a breathing exercise",
+        ]
 
-        # Display tasks inside bubble
+        school_tasks = [
+            "Review your notes",
+            "Finish an assignment",
+            "Organize your workspace",
+            "Check in with a classmate",
+        ]
+
+        personal_tasks = [
+            "Take a deep breath",
+            "Message a friend",
+            "Relax for a moment",
+        ]
+
+        # Combine tasks based on user selection
+        tasks = []
+
+        if "food" in self.selected_categories:
+            tasks.extend(food_tasks)
+        if "exercise" in self.selected_categories:
+            tasks.extend(exercise_tasks)
+        if "school" in self.selected_categories:
+            tasks.extend(school_tasks)
+        if "personal" in self.selected_categories:
+            tasks.extend(personal_tasks)
+
+        # If Invalid input (no categories are selected)
+        if not tasks:
+            print('no tasks selected (placeholder)!')
+        chosen = random.sample(tasks, min(3, len(tasks))) # randomly select tasks
+
+        # Display tasks inside text bubble
         text = "\n".join(f"• {t}" for t in chosen) # bullet point the tasks on their own lines
 
-        # update the bubble
+        # update the speech bubble
         self.bubble_label.config(text=text)
 
 
@@ -114,6 +195,3 @@ class WellbeingWidget:
 if __name__ == "__main__":  # if the program is run
     widget = WellbeingWidget("testimg.png")  # create a widget using the test image (changeable for skins/states later!)
     widget.run()  # go go go !!
-
-
-
