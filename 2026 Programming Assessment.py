@@ -5,7 +5,7 @@ import random  # for random task generation
 
 # Creates the widget as a class (allows for more features)
 class WellbeingWidget: #create class
-    def __init__(self, image_path="testimg.png"): # create image path (for main widget image)
+    def __init__(self, image_path="living_plant.png"): # create image path (for main widget image)
         self.image_path = image_path # store the image path for later use
 
     # set up for user input
@@ -179,19 +179,52 @@ class WellbeingWidget: #create class
         if "personal" in self.selected_categories:
             tasks.extend(personal_tasks)
 
-        # If Invalid input (no categories are selected)
+        # If Invalid input (no categories selected :c)
         if not tasks:
-            print('no tasks selected (placeholder)!')
+            # close speech bubble if its open
+            if hasattr(self, "bubble"):
+                self.bubble.destroy()
+
+            # Close main widget window
+            self.root.destroy()
+
+            # Create new window 'popup' that tells the user what they did wrong
+            popup = tk.Tk()
+            popup.title("Selection Required")
+
+            tk.Label(
+                popup,
+                text="You must select at least one type of task.",
+                font=("Arial", 10),
+                padx=20,
+                pady=20
+            ).pack()
+
+            tk.Button(
+                popup,
+                text="OK",
+                font=("Arial", 10),
+                command=lambda: [popup.destroy(), self.reopen_selection_window()]
+            ).pack(pady=10)
+
+            popup.mainloop()
+            return  # stop the rest of the function
+
         chosen = random.sample(tasks, min(3, len(tasks))) # randomly select tasks
 
-        # Display tasks inside text bubble
-        text = "\n".join(f"• {t}" for t in chosen) # bullet point the tasks on their own lines
+        # Put tasks inside text bubble
+        text = "\n".join(f"• {t}" for t in chosen) # bullet point tasks
 
-        # update the speech bubble
+        # update text bubble
         self.bubble_label.config(text=text)
+
+    # reopen selection window after pop up
+    def reopen_selection_window(self):
+        self.selected_categories = []  # reset categories
+        self.open_question_window()    # reopen selection window
 
 
 # Run the widget
 if __name__ == "__main__":  # if the program is run
-    widget = WellbeingWidget("testimg.png")  # create a widget using the test image (changeable for skins/states later!)
+    widget = WellbeingWidget("living_plant.png")  # create a widget using plant img (changeable for skins/states later!)
     widget.run()  # go go go !!
