@@ -118,23 +118,14 @@ class WellbeingWidget: #create class
         bubble_x = self.root.winfo_x() - 210  # place it 210 pixels to the left of the main widget (accounting for the size of the bubble)
         bubble_y = self.root.winfo_y() - 50  # place it 50 pixels above the main widget
 
-        self.bubble.geometry(f"200x80+{bubble_x}+{bubble_y}") # place the speech bubble!
+        self.bubble.geometry(f"200x120+{bubble_x}+{bubble_y}") # place the speech bubble!
 
-        # store information about the bubble
-        self.bubble_label = tk.Label(
-            self.bubble,
-            bg="white",
-            fg="black",
-            font=("Arial", 9),
-            justify="left"
-        )
-        self.bubble_label.pack(padx=10, pady=10)
+        # frame for tasks + checkboxes
+        self.task_frame = tk.Frame(self.bubble, bg="white")
+        self.task_frame.pack(padx=10, pady=10)
 
         # initial task generates
         self.refresh_tasks()
-
-        # refresh tasks when bubble clicked
-        self.bubble_label.bind("<Button-1>", lambda e: self.refresh_tasks())
 
     # refreshes tasks inside bubble
     def refresh_tasks(self):
@@ -210,13 +201,81 @@ class WellbeingWidget: #create class
             popup.mainloop()
             return  # stop the rest of the function
 
-        chosen = random.sample(tasks, min(3, len(tasks))) # randomly select tasks
+        # clear previous tasks
+        for widget in self.task_frame.winfo_children():
+            widget.destroy()
 
-        # Put tasks inside text bubble
-        text = "\n".join(f"• {t}" for t in chosen) # bullet point tasks
+        # choose random task
+        chosen = random.sample(tasks, min(3, len(tasks)))
 
-        # update text bubble
-        self.bubble_label.config(text=text)
+        # store categories for use in replacement
+        self.category_pools = {
+            "food": food_tasks,
+            "exercise": exercise_tasks,
+            "school": school_tasks,
+            "personal": personal_tasks
+        }
+
+        # create rows and boxes
+        self.task_rows = []
+        for task in chosen:
+            row = tk.Frame(self.task_frame, bg="white")
+
+            var = tk.IntVar()
+
+            # create checkbox that replaces the tasks
+            cb = tk.Checkbutton(
+                row,
+                variable=var,
+                command=lambda t=task, r=row: self.replace_task(t, r),
+                bg="white"
+            )
+            cb.pack(side="left")
+
+            # create task text
+            label = tk.Label(
+                row,
+                text=f"• {task}",
+                bg="white",
+                fg="black",
+                font=("Arial", 9),
+                justify="left"
+            )
+            label.pack(side="left", padx=5)
+
+            row.pack(anchor="w", pady=2)
+            self.task_rows.append((task, row))
+
+    # replaces a task when its checkbox is clicked
+    def replace_task(self, old_task, row):
+        # find what category that task was in
+        for category, pool in self.category_pools.items(): 
+            if old_task in pool: 
+                new_task = random.choice(pool) #pick a task from that category
+                break
+
+        # update to add task
+        for widget in row.winfo_children():
+            widget.destroy()
+
+        var = tk.IntVar()
+        cb = tk.Checkbutton(
+            row,
+            variable=var,
+            command=lambda t=new_task, r=row: self.replace_task(t, r),
+            bg="white"
+        )
+        cb.pack(side="left")
+
+        label = tk.Label(
+            row,
+            text=f"• {new_task}",
+            bg="white",
+            fg="black",
+            font=("Arial", 9),
+            justify="left"
+        )
+        label.pack(side="left", padx=5)
 
     # reopen selection window after pop up
     def reopen_selection_window(self):
