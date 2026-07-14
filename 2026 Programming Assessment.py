@@ -8,7 +8,10 @@ class WellbeingWidget: #create class
     def __init__(self, image_path="living_plant.png"): # create image path (for main widget image)
         self.image_path = image_path # store the image path for later use
 
-    # set up for user input
+        # plant image setup
+        self.plant_states = ["living_plant.png", "wilting_plant.png", "dead_plant.png"]
+        self.current_state_index = 0  # start at living plant
+
         self.user_name = None # create name variable
         self.selected_categories = [] # create list to store categories
         self.open_question_window() # create window event to ask for input
@@ -65,6 +68,9 @@ class WellbeingWidget: #create class
         self.place_widget()  # places the widget on the screen
         self.bind_events()  # causes the widget to close when clicked
 
+        # start timer for wilting
+        self.root.after(5000, self.wilt_plant)
+
         # Delay bubble creation so the window has time to appear
         self.root.after(50, self.create_speech_bubble)
 
@@ -75,10 +81,31 @@ class WellbeingWidget: #create class
         self.root.attributes("-topmost", False)  # allows other tabs to open over, keeping it on the desktop.
 
     def load_image(self):
-        self.img = tk.PhotoImage(file=self.image_path)  # loads image as whatever file was specified 
+        self.img = tk.PhotoImage(file=self.plant_states[self.current_state_index])  # loads image based on plant state
         self.label = tk.Label(self.root, image=self.img)  # names the image for use
         self.label.image = self.img  # ensures the image is not labeled unused and not displayed (thanks tkinter)
         self.label.pack()  # make the image actually display using all the information it has been given
+
+    def update_plant_image(self):
+        """Reloads the plant image after state change."""
+        self.img = tk.PhotoImage(file=self.plant_states[self.current_state_index])
+        self.label.configure(image=self.img)
+        self.label.image = self.img
+
+    # every five seconds plant wilts more 
+    def wilt_plant(self):
+        if self.current_state_index < len(self.plant_states) - 1:
+            self.current_state_index += 1
+            self.update_plant_image()
+
+        # schedule next wilt
+        self.root.after(5000, self.wilt_plant)
+
+    # unwilt plant when task done 
+    def revive_plant(self):
+        if self.current_state_index > 0:
+            self.current_state_index -= 1
+            self.update_plant_image()
 
     def place_widget(self):
         screen_width = self.root.winfo_screenwidth()  # find width of the screen
@@ -248,6 +275,9 @@ class WellbeingWidget: #create class
 
     # replaces a task when its checkbox is clicked
     def replace_task(self, old_task, row):
+        # revive plant when task completed ---
+        self.revive_plant()
+
         # find what category that task was in
         for category, pool in self.category_pools.items(): 
             if old_task in pool: 
