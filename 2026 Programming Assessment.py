@@ -8,9 +8,12 @@ class WellbeingWidget: #create class
     def __init__(self, image_path="living_plant.png"): # create image path (for main widget image)
         self.image_path = image_path # store the image path for later use
 
-        # plant image setup
+        # plant state system
         self.plant_states = ["living_plant.png", "wilting_plant.png", "dead_plant.png"]
         self.current_state_index = 0  # start at living plant
+
+        # default wilt time (replaced when user enters their preferredtime)
+        self.wilt_time_seconds = 5
 
         self.user_name = None # create name variable
         self.selected_categories = [] # create list to store categories
@@ -38,6 +41,11 @@ class WellbeingWidget: #create class
         tk.Checkbutton(self.setup_win, text="School-related tasks", variable=self.school_var).pack(anchor="w")
         tk.Checkbutton(self.setup_win, text="Personal/Other tasks", variable=self.personal_var).pack(anchor="w")
 
+        # wilt timer input
+        tk.Label(self.setup_win, text="Enter plant wilt time (seconds, max 6000):").pack(pady=10)
+        self.wilt_entry = tk.Entry(self.setup_win)
+        self.wilt_entry.pack(pady=5)
+
         tk.Button(self.setup_win, text="Start Widget", command=self.finish_setup).pack(pady=15)
 
         self.setup_win.mainloop()
@@ -56,23 +64,56 @@ class WellbeingWidget: #create class
         if self.personal_var.get() == 1:
             self.selected_categories.append("personal")
 
+        # check whether wilt time is acceptable
+        wilt_text = self.wilt_entry.get().strip()
+
+        try:
+            value = int(wilt_text)
+            if value <= 0 or value > 6000:
+                raise ValueError
+            self.wilt_time_seconds = value
+        except:
+            self.show_wilt_error()
+            return
+
         # Close setup window
         self.setup_win.destroy()
 
         # Continue loading widget
         self.root = tk.Tk()
         
-        # adds class function that..
         self.setup_window()  # creates the main window
         self.load_image()  # loads the main image so that it can be used
         self.place_widget()  # places the widget on the screen
         self.bind_events()  # causes the widget to close when clicked
 
-        # start timer for wilting
-        self.root.after(5000, self.wilt_plant)
+        # start plant wilting timer using user input
+        self.root.after(self.wilt_time_seconds * 1000, self.wilt_plant)
 
         # Delay bubble creation so the window has time to appear
         self.root.after(50, self.create_speech_bubble)
+
+    # popup for invalid wilt input
+    def show_wilt_error(self):
+        popup = tk.Tk()
+        popup.title("Invalid Input")
+
+        tk.Label(
+            popup,
+            text="Wilt time must be a number 1 and 6000",
+            font=("Arial", 10),
+            padx=20,
+            pady=20
+        ).pack()
+
+        tk.Button(
+            popup,
+            text="OK",
+            font=("Arial", 10),
+            command=popup.destroy
+        ).pack(pady=10)
+
+        popup.mainloop()
 
     def setup_window(self):
         self.root.title("Wellbeing Widget")  # name window
@@ -92,16 +133,16 @@ class WellbeingWidget: #create class
         self.label.configure(image=self.img)
         self.label.image = self.img
 
-    # every five seconds plant wilts more 
+    # plant wilting timer
     def wilt_plant(self):
         if self.current_state_index < len(self.plant_states) - 1:
             self.current_state_index += 1
             self.update_plant_image()
 
-        # schedule next wilt
-        self.root.after(5000, self.wilt_plant)
+        # plan/set next wilt
+        self.root.after(self.wilt_time_seconds * 1000, self.wilt_plant)
 
-    # unwilt plant when task done 
+    # revive plant one stage when task done
     def revive_plant(self):
         if self.current_state_index > 0:
             self.current_state_index -= 1
@@ -121,11 +162,9 @@ class WellbeingWidget: #create class
 
     # lets the widget close when clicked rather than forcing the user to end the code manually
     def bind_events(self):
-        # closes both windows when clicked
         self.label.bind("<Button-1>", lambda e: self.close())
 
     def close(self):
-        # Close bubble too if it exists
         if hasattr(self, "bubble"):
             self.bubble.destroy()
         self.root.destroy()
@@ -135,28 +174,23 @@ class WellbeingWidget: #create class
 
     # creates the section that holds the tasks
     def create_speech_bubble(self):
-        # Creates a new window for the bubble
-        self.bubble = tk.Toplevel(self.root) # creates a new window that groups/is attached to the main widget
-        self.bubble.overrideredirect(True) # removes framing
-        self.bubble.attributes("-topmost", False) # place below other windows, just like main window
-        self.bubble.configure(bg="white") # make it white
+        self.bubble = tk.Toplevel(self.root)
+        self.bubble.overrideredirect(True)
+        self.bubble.attributes("-topmost", False)
+        self.bubble.configure(bg="white")
 
-        # Places bubble
-        bubble_x = self.root.winfo_x() - 210  # place it 210 pixels to the left of the main widget (accounting for the size of the bubble)
-        bubble_y = self.root.winfo_y() - 50  # place it 50 pixels above the main widget
+        bubble_x = self.root.winfo_x() - 210
+        bubble_y = self.root.winfo_y() - 50
 
-        self.bubble.geometry(f"200x120+{bubble_x}+{bubble_y}") # place the speech bubble!
+        self.bubble.geometry(f"200x120+{bubble_x}+{bubble_y}")
 
-        # frame for tasks + checkboxes
         self.task_frame = tk.Frame(self.bubble, bg="white")
         self.task_frame.pack(padx=10, pady=10)
 
-        # initial task generates
         self.refresh_tasks()
 
     # refreshes tasks inside bubble
     def refresh_tasks(self):
-        # Create categorised task lists
         food_tasks = [
             "Eat a meal",
             "Have a healthy snack",
@@ -185,7 +219,6 @@ class WellbeingWidget: #create class
             "Relax for a moment",
         ]
 
-        # Combine tasks based on user selection
         tasks = []
 
         if "food" in self.selected_categories:
@@ -197,16 +230,12 @@ class WellbeingWidget: #create class
         if "personal" in self.selected_categories:
             tasks.extend(personal_tasks)
 
-        # If Invalid input (no categories selected :c)
         if not tasks:
-            # close speech bubble if its open
             if hasattr(self, "bubble"):
                 self.bubble.destroy()
 
-            # Close main widget window
             self.root.destroy()
 
-            # Create new window 'popup' that tells the user what they did wrong
             popup = tk.Tk()
             popup.title("Selection Required")
 
@@ -226,16 +255,13 @@ class WellbeingWidget: #create class
             ).pack(pady=10)
 
             popup.mainloop()
-            return  # stop the rest of the function
+            return
 
-        # clear previous tasks
         for widget in self.task_frame.winfo_children():
             widget.destroy()
 
-        # choose random task
         chosen = random.sample(tasks, min(3, len(tasks)))
 
-        # store categories for use in replacement
         self.category_pools = {
             "food": food_tasks,
             "exercise": exercise_tasks,
@@ -243,14 +269,12 @@ class WellbeingWidget: #create class
             "personal": personal_tasks
         }
 
-        # create rows and boxes
         self.task_rows = []
         for task in chosen:
             row = tk.Frame(self.task_frame, bg="white")
 
             var = tk.IntVar()
 
-            # create checkbox that replaces the tasks
             cb = tk.Checkbutton(
                 row,
                 variable=var,
@@ -259,7 +283,6 @@ class WellbeingWidget: #create class
             )
             cb.pack(side="left")
 
-            # create task text
             label = tk.Label(
                 row,
                 text=f"• {task}",
@@ -275,16 +298,13 @@ class WellbeingWidget: #create class
 
     # replaces a task when its checkbox is clicked
     def replace_task(self, old_task, row):
-        # revive plant when task completed ---
         self.revive_plant()
 
-        # find what category that task was in
         for category, pool in self.category_pools.items(): 
             if old_task in pool: 
-                new_task = random.choice(pool) #pick a task from that category
+                new_task = random.choice(pool)
                 break
 
-        # update to add task
         for widget in row.winfo_children():
             widget.destroy()
 
@@ -307,13 +327,13 @@ class WellbeingWidget: #create class
         )
         label.pack(side="left", padx=5)
 
-    # reopen selection window after pop up
     def reopen_selection_window(self):
-        self.selected_categories = []  # reset categories
-        self.open_question_window()    # reopen selection window
+        self.selected_categories = []
+        self.open_question_window()
 
 
 # Run the widget
-if __name__ == "__main__":  # if the program is run
-    widget = WellbeingWidget("living_plant.png")  # create a widget using plant img (changeable for skins/states later!)
-    widget.run()  # go go go !!
+if __name__ == "__main__":
+    widget = WellbeingWidget("living_plant.png")
+    widget.run()
+
