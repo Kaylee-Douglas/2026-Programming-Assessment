@@ -20,28 +20,28 @@ class WellbeingWidget: #create class
 
     # create name input/task preference window
     def open_question_window(self):
-        self.setup_win = tk.Tk()
-        self.setup_win.title("Personalize Your Widget!")
+        self.setup_win = tk.Tk() # create widget
+        self.setup_win.title("Personalize Your Widget!") # name widget
 
-        tk.Label(self.setup_win, text="Enter your Name:").pack(pady=5)
+        tk.Label(self.setup_win, text="Enter your Name:").pack(pady=5) 
         self.name_entry = tk.Entry(self.setup_win)
         self.name_entry.pack(pady=5)
 
         tk.Label(self.setup_win, text="Select task categories:").pack(pady=10)
 
         # Checkboxes for categories
-        self.food_var = tk.IntVar()
-        self.exercise_var = tk.IntVar()
-        self.school_var = tk.IntVar()
-        self.personal_var = tk.IntVar()
+        self.food_var = tk.IntVar() # create variable for food checkbox state
+        self.exercise_var = tk.IntVar() # create variable for exercise checkbox state
+        self.school_var = tk.IntVar() # create variable for school checkbox state
+        self.personal_var = tk.IntVar() # create variable for personal/other checkbox state
 
-        tk.Checkbutton(self.setup_win, text="Food-related tasks", variable=self.food_var).pack(anchor="w")
-        tk.Checkbutton(self.setup_win, text="Exercise-related tasks", variable=self.exercise_var).pack(anchor="w")
-        tk.Checkbutton(self.setup_win, text="School-related tasks", variable=self.school_var).pack(anchor="w")
-        tk.Checkbutton(self.setup_win, text="Personal/Other tasks", variable=self.personal_var).pack(anchor="w")
+        tk.Checkbutton(self.setup_win, text="Food-related tasks", variable=self.food_var).pack(anchor="w") # create checkbox for food tasks
+        tk.Checkbutton(self.setup_win, text="Exercise-related tasks", variable=self.exercise_var).pack(anchor="w") # create checkbox for exercise tasks
+        tk.Checkbutton(self.setup_win, text="School-related tasks", variable=self.school_var).pack(anchor="w") # create checkbox for school tasks
+        tk.Checkbutton(self.setup_win, text="Personal/Other tasks", variable=self.personal_var).pack(anchor="w") # create checkbox for personal/other tasks
 
         # wilt timer input
-        tk.Label(self.setup_win, text="Enter plant wilt time (seconds, max 6000):").pack(pady=10)
+        tk.Label(self.setup_win, text="Enter plant wilt time (seconds, max 6000):").pack(pady=10) 
         self.wilt_entry = tk.Entry(self.setup_win)
         self.wilt_entry.pack(pady=5)
 
@@ -49,27 +49,28 @@ class WellbeingWidget: #create class
 
         self.setup_win.mainloop()
 
-    # load widget with user's chosen input
+    # function which loads widget with user's chosen input
     def finish_setup(self):
-        self.user_name = self.name_entry.get().strip()
+        self.user_name = self.name_entry.get().strip() # store user's name. 'strip' removes extra spaces before/after name
 
         # Store selected categories
-        if self.food_var.get() == 1:
-            self.selected_categories.append("food")
-        if self.exercise_var.get() == 1:
-            self.selected_categories.append("exercise")
-        if self.school_var.get() == 1:
-            self.selected_categories.append("school")
-        if self.personal_var.get() == 1:
-            self.selected_categories.append("personal")
+        if self.food_var.get() == 1: # if food checkbox is clicked (1 state)
+            self.selected_categories.append("food") # add food to categories if selected
+        if self.exercise_var.get() == 1: # if exercise checkbox is clicked (1 state)
+            self.selected_categories.append("exercise") # add exercise to categories if selected
+        if self.school_var.get() == 1: # if school checkbox is clicked (1 state)
+            self.selected_categories.append("school") # add school to categories if selected
+        if self.personal_var.get() == 1: # if personal/other checkbox is clicked (1 state)
+            self.selected_categories.append("personal") # add personal/other to categories if selected
 
         # check whether wilt time is acceptable
-        wilt_text = self.wilt_entry.get().strip()
+        wilt_text = self.wilt_entry.get().strip() # store user time input without spaces before/after
 
-        try:
+        # convert input to integer if viable, or return an error
+        try: 
             value = int(wilt_text)
-            if value <= 0 or value > 6000:
-                raise ValueError
+            if value <= 0 or value > 6000: # check input is within expected range
+                raise ValueError 
             self.wilt_time_seconds = value
         except:
             self.show_wilt_error()
@@ -95,8 +96,9 @@ class WellbeingWidget: #create class
     # popup for invalid wilt input
     def show_wilt_error(self):
         popup = tk.Tk()
-        popup.title("Invalid Input")
+        popup.title("Invalid Input") # name the popup window
 
+        # display error message
         tk.Label(
             popup,
             text="Wilt time must be a number 1 and 6000",
@@ -104,7 +106,8 @@ class WellbeingWidget: #create class
             padx=20,
             pady=20
         ).pack()
-
+        
+        # create button which closes popup.
         tk.Button(
             popup,
             text="OK",
@@ -126,8 +129,8 @@ class WellbeingWidget: #create class
         self.label.image = self.img  # ensures the image is not labeled unused and not displayed (thanks tkinter)
         self.label.pack()  # make the image actually display using all the information it has been given
 
+    # reloads image when the plant wilts or revives
     def update_plant_image(self):
-        """Reloads the plant image after state change."""
         self.img = tk.PhotoImage(file=self.plant_states[self.current_state_index])
         self.label.configure(image=self.img)
         self.label.image = self.img
@@ -147,6 +150,7 @@ class WellbeingWidget: #create class
             self.current_state_index -= 1
             self.update_plant_image()
 
+    # places the widget in bottom corner
     def place_widget(self):
         screen_width = self.root.winfo_screenwidth()  # find width of the screen
         screen_height = self.root.winfo_screenheight()  # find height of the screen
@@ -163,30 +167,31 @@ class WellbeingWidget: #create class
     def bind_events(self):
         self.label.bind("<Button-1>", lambda e: self.close())
 
+    # closes everything
     def close(self):
-        if hasattr(self, "bubble"):
-            self.bubble.destroy()
-        self.root.destroy()
+        if hasattr(self, "bubble"): # if the bubble exists
+            self.bubble.destroy() # destroy the bubble
+        self.root.destroy() # regardless of the bubble existing, destroy the main widget
 
     def run(self):
         self.root.mainloop()
 
     # creates the section that holds the tasks
     def create_speech_bubble(self):
-        self.bubble = tk.Toplevel(self.root)
-        self.bubble.overrideredirect(True)
-        self.bubble.attributes("-topmost", False)
-        self.bubble.configure(bg="white")
+        self.bubble = tk.Toplevel(self.root) # creates new window
+        self.bubble.overrideredirect(True) # removes framing
+        self.bubble.attributes("-topmost", False) # allows other tabs to open over, keeping it on the desktop.
+        self.bubble.configure(bg="white") # makes background white ('bubble')
 
-        bubble_x = self.root.winfo_x() - 210
-        bubble_y = self.root.winfo_y() - 50
+        bubble_x = self.root.winfo_x() - 210 # places bubble 210 pixels left of widget
+        bubble_y = self.root.winfo_y() - 50 # places bubble 50 pixels above widget
 
-        self.bubble.geometry(f"200x120+{bubble_x}+{bubble_y}")
+        self.bubble.geometry(f"200x120+{bubble_x}+{bubble_y}") # sets bubble to correct size and places.
 
-        self.task_frame = tk.Frame(self.bubble, bg="white")
-        self.task_frame.pack(padx=10, pady=10)
+        self.task_frame = tk.Frame(self.bubble, bg="white") #creates frame inside bubble for tasks
+        self.task_frame.pack(padx=10, pady=10) # pad frame so text isn't directly on the edge
 
-        self.refresh_tasks()
+        self.refresh_tasks() # call refresh task button to add tasks to the created bubble.
 
     # refreshes tasks inside bubble
     def refresh_tasks(self):
@@ -195,7 +200,7 @@ class WellbeingWidget: #create class
             "Have a healthy snack",
             "Drink some water",
             "Meal Prep",
-        ]
+        ] #store tasks in a list
 
         exercise_tasks = [
             "Pause to stretch",
@@ -220,8 +225,8 @@ class WellbeingWidget: #create class
 
         tasks = []
 
-        if "food" in self.selected_categories:
-            tasks.extend(food_tasks)
+        if "food" in self.selected_categories: # if food checkbox selected
+            tasks.extend(food_tasks) #add food to the list of tasks if selected
         if "exercise" in self.selected_categories:
             tasks.extend(exercise_tasks)
         if "school" in self.selected_categories:
@@ -229,13 +234,13 @@ class WellbeingWidget: #create class
         if "personal" in self.selected_categories:
             tasks.extend(personal_tasks)
 
-        if not tasks:
-            if hasattr(self, "bubble"):
-                self.bubble.destroy()
+        if not tasks: # if no tasks are selected
+            if hasattr(self, "bubble"): # and the bubble exists
+                self.bubble.destroy() # destroy the bubble
 
-            self.root.destroy()
+            self.root.destroy() # destroy the main widget 
 
-            popup = tk.Tk()
+            popup = tk.Tk() # create popup window
             popup.title("Selection Required")
 
             tk.Label(
@@ -244,22 +249,22 @@ class WellbeingWidget: #create class
                 font=("Arial", 10),
                 padx=20,
                 pady=20
-            ).pack()
+            ).pack() # display error message
 
             tk.Button(
                 popup,
                 text="OK",
                 font=("Arial", 10),
                 command=lambda: [popup.destroy(), self.reopen_selection_window()]
-            ).pack(pady=10)
+            ).pack(pady=10) # create 'ok' button which closes popup and reopens the selection window.
 
             popup.mainloop()
             return
 
-        for widget in self.task_frame.winfo_children():
-            widget.destroy()
+        for widget in self.task_frame.winfo_children(): # go through every widget in the frame
+            widget.destroy() # destroy each widget to clear the frame for new tasks
 
-        chosen = random.sample(tasks, min(3, len(tasks)))
+        chosen = random.sample(tasks, min(3, len(tasks))) # randomly select 3 tasks
 
         self.category_pools = {
             "food": food_tasks,
@@ -268,7 +273,7 @@ class WellbeingWidget: #create class
             "personal": personal_tasks
         }
 
-        self.task_rows = []
+        self.task_rows = [] # create list to store task rows for later use
         for task in chosen:
             row = tk.Frame(self.task_frame, bg="white")
 
@@ -304,6 +309,7 @@ class WellbeingWidget: #create class
                 new_task = random.choice(pool)
                 break
 
+        # destroy every widget
         for widget in row.winfo_children():
             widget.destroy()
 
@@ -316,7 +322,7 @@ class WellbeingWidget: #create class
         )
         cb.pack(side="left")
 
-        label = tk.Label(
+        label = tk.Label( # label new task
             row,
             text=f"• {new_task}",
             bg="white",
@@ -326,13 +332,14 @@ class WellbeingWidget: #create class
         )
         label.pack(side="left", padx=5)
 
+    # function which reopens the selection window if no categories selected
     def reopen_selection_window(self):
-        self.selected_categories = []
-        self.open_question_window()
+        self.selected_categories = [] # reset selected categories to ensure they're clear
+        self.open_question_window() # reopen the window
 
 
 # Run the widget
-if __name__ == "__main__":
-    widget = WellbeingWidget("living_plant.png")
-    widget.run()
+if __name__ == "__main__": # if the code is run
+    widget = WellbeingWidget("living_plant.png") # create widget with the living image.
+    widget.run() # run widget
 
