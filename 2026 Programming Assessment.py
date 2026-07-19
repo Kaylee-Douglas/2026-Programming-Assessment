@@ -1,5 +1,4 @@
 import tkinter as tk  # import gui so graphical interface can be used
-import mysql.connector as mysql  # connect database to vscode
 import datetime  # allow for time to be tracked
 import random  # for random task generation
 
